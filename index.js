@@ -3,7 +3,8 @@ const showDom = $('#show-content')
 const markdown = new MarkdownParser()
 showDom.innerHTML = markdown.compile(editor.children)
 
-editor.oninput = () => {
+function onInput() {
+    console.log('onInput')
     // 为每个元素加上索引，通过索引找到 markdown 渲染后的元素
     let index = 0
     const data = Array.from(editor.children)
@@ -32,7 +33,6 @@ editor.oninput = () => {
                 }
             })
             
-            const nodes = frag.children
             editor.replaceChild(frag, item)
             
             // 需要修改光标位置，不然光标会在复制内容的前面，修改后会在复制内容的后面
@@ -41,6 +41,11 @@ editor.oninput = () => {
     })
 
     showDom.innerHTML = markdown.compile(editor.childNodes)
+}
+
+const debounceFn = debounce(100) // 防抖
+editor.oninput = () => {
+    debounceFn(onInput)
 }
 
 editor.onpaste = (e) => {
@@ -53,22 +58,22 @@ const canScroll = {
     showDom: true,
 }
 
-const tfn = throttle(50) // 节流
-const dfn = debounce(100) // 防抖
+const debounceFn2 = debounce(100) // 防抖
+const throttleFn = throttle(50) // 节流
 editor.onscroll = () => {
     if (!canScroll.editor) return
 
     canScroll.showDom = false
-    tfn(onScroll, editor, showDom)
-    dfn(resumeScroll)
+    throttleFn(onScroll, editor, showDom)
+    debounceFn2(resumeScroll)
 }
 
 showDom.onscroll = () => {
     if (!canScroll.showDom) return
 
     canScroll.editor = false
-    tfn(onScroll, showDom, editor)
-    dfn(resumeScroll)
+    throttleFn(onScroll, showDom, editor)
+    debounceFn(resumeScroll)
 }
 
 // 恢复滚动
@@ -100,14 +105,43 @@ function onScroll(scrollContainer, ShowContainer) {
     const nodes = Array.from(scrollContainer.children)
     for (const node of nodes) {
         // 从上往下遍历，找到第一个在屏幕内的元素
-        if (isInScreen(node) && percentOfdomInScreen(node) >= 0) {
+        if (canNodeCalculate(node)) {
+            // 如果当前滚动的元素是 <pre> <table>
+            if (node.tagName === 'PRE' || node.tagName === 'TABLE') {
+                // 如果 pre 里面的子元素同步滚动了，则直接返回
+                if (hasPreElementInScrollContainerScroll(node, ShowContainer)) return
+                // 否则直接从下一个元素开始计算
+                continue
+            }
+
             const index = node.dataset.index
-            const percent = percentOfdomInScreen(node)
             const dom = ShowContainer.querySelector(`[data-index="${index}"]`)
-            const heightToTop = getHeightToTop(dom, ShowContainer)
+            if (!dom) continue
+
+            const percent = percentOfdomInScreen(node)
+            const heightToTop = getHeightToTop(dom)
             const domNeedHideHeight = dom.offsetHeight * (1 - percent)
             ShowContainer.scrollTo({ top: heightToTop + domNeedHideHeight })
             break
         }
     }
+}
+
+function hasPreElementInScrollContainerScroll(preElement, ShowContainer) {
+    for (const node of preElement.children[0].children) {
+        // 从上往下遍历，找到第一个在屏幕内的元素
+        if (isInScreen(node) && percentOfdomInScreen(node) >= 0) {
+            const index = node.dataset.index
+            const dom = ShowContainer.querySelector(`[data-index="${index}"]`)
+            if (!dom) continue
+
+            const percent = percentOfdomInScreen(node)
+            const heightToTop = getHeightToTop(dom)
+            const domNeedHideHeight = dom.offsetHeight * (1 - percent)
+            ShowContainer.scrollTo({ top: heightToTop + domNeedHideHeight })
+            return true
+        }
+    }
+
+    return false
 }

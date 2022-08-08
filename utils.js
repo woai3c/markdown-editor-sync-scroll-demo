@@ -75,13 +75,13 @@ function debounce(delay) {
  * @param {HTMLElement} topContainer 终止条件
  * @returns 
  */
- function getHeightToTop(dom, topContainer) {
+ function getHeightToTop(dom) {
     let height = dom.offsetTop
-    let parent = dom.parentNode
+    let parent = dom.offsetParent
 
-    while (parent && parent !== topContainer) {
+    while (parent) {
         height += parent.offsetTop
-        parent = parent.parentNode
+        parent = parent.offsetParent
     }
 
     return height
@@ -99,4 +99,14 @@ function percentOfdomInScreen(dom) {
     if (bottom <= 0) return 0
     if (bottom >= height) return 1
     return bottom / height
+}
+
+function canNodeCalculate(node) {
+    return (
+        node.innerHTML 
+        && node.innerHTML !== '<br>' 
+        && !node.textContent.startsWith('```') 
+        && isInScreen(node) 
+        && percentOfdomInScreen(node) >= 0
+    )
 }
