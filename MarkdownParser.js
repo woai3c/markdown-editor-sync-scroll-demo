@@ -1,6 +1,6 @@
 class MarkdownParser {
     compile(nodes) {
-        let matcharr
+        let matchArr
         let html = ''
         for (let i = 0, len = nodes.length; i < len; i++) {
             let text = ''
@@ -10,12 +10,12 @@ class MarkdownParser {
                 if (node.innerHTML === '<br>') continue
 
                 index = node.dataset.index
-                text = node.innerText.trim()
+                text = node.textContent.trim()
             } else {
                 text = node.nodeValue.trim()
             }
 
-            matcharr = text.match(/^#\s/)
+            matchArr = text.match(/^#\s/)
                         || text.match(/^##\s/)
                         || text.match(/^###\s/)
                         || text.match(/^####\s/)
@@ -25,17 +25,20 @@ class MarkdownParser {
                         || text.match(/^>\s/)
                         || text.match(/^\*\s/)
                         || text.match(/^\d\.\s/)
-                        || text.match(/^```$/)
+                        || text.match(/^```/)
                         || text.match(/^\|.*\|/)
+                        || text.match(/`[^`]*`/)
 
-            if (matcharr) {
+            if (matchArr) {
                 let temp = ''
                 const re1 = /^>\s/
                 const re2 = /^\*\s/
                 const re3 = /^\d\.\s/
-                const re4 = /^```$/
+                const re4 = /^```/
                 const re5 = /^\|.*\|/
-                switch(matcharr[0]) {
+                const re6 = /`[^`]*`/
+                console.log(matchArr[0], text.match(/`[^`]*`/))
+                switch(matchArr[0]) {
                     case '# ':
                         html += `<h1 data-index="${index}">` + this.format(text.substring(2)) + '</h1>'
                         break
@@ -58,24 +61,24 @@ class MarkdownParser {
                         html += text.replace(/^\*{3,}/g, '<hr>')
                         break
                     case '> ':
-                        while (i < len && nodes[i].innerText.match(re1)) {
-                            const str = nodes[i].innerText
+                        while (i < len && nodes[i].textContent.match(re1)) {
+                            const str = nodes[i].textContent
                             temp += '<div>' + str.substring(2, str.length) + '</div>'
                             i++
                         }
                         html += `<blockquote data-index="${index}">` + temp + '</blockquote>'
                         break
                     case '* ':
-                        while (i < len && nodes[i].innerText?.match(re2)) {
-                            const str = nodes[i].innerText
+                        while (i < len && nodes[i].textContent?.match(re2)) {
+                            const str = nodes[i].textContent
                             temp += '<li>' + str.substring(2, str.length) + '</li>'
                             i++
                         } 
                         html += `<ul data-index="${index}">` + temp + '</ul>'
                         break
                     case text.match(/^\d\.\s/) && text.match(/^\d\.\s/)[0]:
-                        while (i < len && nodes[i].innerText?.match(re3)) {
-                            const str = nodes[i].innerText
+                        while (i < len && nodes[i].textContent?.match(re3)) {
+                            const str = nodes[i].textContent
                             temp += '<li>' + str.substring(3, str.length) + '</li>'
                             i++
                         } 
@@ -83,17 +86,18 @@ class MarkdownParser {
                         break
                     case '```':
                         i++
-                        while (i < len && !re4.test(nodes[i].innerText)) {
-                            temp += nodes[i].innerText + '\n'
+                        while (i < len && !re4.test(nodes[i].textContent)) {
+                            temp += nodes[i].textContent + '\n'
                             i++
                         }
                         html += `<pre data-index="${index}">` + temp + '</pre>'
                         break
                     case text.match(/^\|.*\|/) && text.match(/^\|.*\|/)[0]:
+                        console.log('table')
                         let thRe = /^\[th\]/
                         let arr, j, jlen
-                        while (i < len && re5.test(nodes[i].innerText)) {
-                            arr = nodes[i].innerText.split('|')
+                        while (i < len && re5.test(nodes[i].textContent)) {
+                            arr = nodes[i].textContent.split('|')
                             temp += '<tr>'
                             for (j = 1, jlen = arr.length - 1; j < jlen; j++) {
                                 if (thRe.test(arr[1])) {
@@ -109,6 +113,7 @@ class MarkdownParser {
                         html += `<table data-index="${index}">` + temp + '</table>'
                         break
                     default:
+                        html += `<code class="highlight" data-index="${index}">` + text.slice(1, text.length - 1) + '</code>'
                         break
                 }
             } else if (text) {
@@ -157,7 +162,7 @@ class MarkdownParser {
 
         const a = str.match(/\[.*\]\(.*\)/g)
         if (a) {
-            for (i = 0, len = a.length; i < len; i++) {
+            for (let i = 0, len = a.length; i < len; i++) {
                 const url = a[i].match(re1)[0]
                 const title = a[i].match(re2)[0]
                 str = str.replace(a[i], '<a href=' + url.substring(1, url.length - 1)  + '>' + title.substring(1, title.length -1) + '</a>')

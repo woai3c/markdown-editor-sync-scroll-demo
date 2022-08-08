@@ -44,23 +44,35 @@ body {
     background-color: #ddd;
 }
 
+code,
 pre,
 code {
     background: #e6e6e6;
     padding: 1px 5px;
 }
+
 pre {
     margin: 10px 0;
 }
+
 blockquote {
     padding: 0 1em;
     color: #777;
     border-left: 0.25em solid #ddd;
 }
+
 h1,
 h2 {
-    line-height: 30px;
+    margin: 16px 0;
 }
+
+h3,
+h4,
+h5,
+h6 {
+    margin: 10px 0;
+}
+
 hr {
     border: none;
     border-top: 3px solid #d3d3d3;
