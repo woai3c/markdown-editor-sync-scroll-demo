@@ -4,7 +4,6 @@ const markdown = new MarkdownParser()
 showDom.innerHTML = markdown.compile(editor.children)
 
 function onInput() {
-    console.log('onInput')
     // 为每个元素加上索引，通过索引找到 markdown 渲染后的元素
     let index = 0
     const data = Array.from(editor.children)
