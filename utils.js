@@ -95,10 +95,11 @@ function isInScreen(dom) {
 
 // dom 在当前屏幕展示内容的百分比
 function percentOfdomInScreen(dom) {
+    // 已经通过另一个函数 isInScreen() 确定了这个 dom 在屏幕内，所以只需要计算它在屏幕内的百分比，而不需要考虑它是否在屏幕外
     const { height, bottom } = dom.getBoundingClientRect()
-    if (bottom <= 0) return 0
-    if (bottom >= height) return 1
-    return bottom / height
+    if (bottom <= 0) return 0 // 不在屏幕内
+    if (bottom >= height) return 1 // 完全在屏幕内
+    return bottom / height // 部分在屏幕内
 }
 
 function canNodeCalculate(node) {

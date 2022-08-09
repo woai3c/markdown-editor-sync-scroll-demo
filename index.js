@@ -114,12 +114,18 @@ function onScroll(scrollContainer, ShowContainer) {
             }
 
             const index = node.dataset.index
+            // 根据滚动元素的索引，找到它在渲染框中对应的元素
             const dom = ShowContainer.querySelector(`[data-index="${index}"]`)
             if (!dom) continue
 
+            // 获取滚动元素在滚动屏中展示的内容百分比
             const percent = percentOfdomInScreen(node)
+            // 计算这个对等元素在展示屏中距离容器顶部的高度
             const heightToTop = getHeightToTop(dom)
+            // 根据 percent 算出对等元素在展示屏中需要隐藏的高度
             const domNeedHideHeight = dom.offsetHeight * (1 - percent)
+            // scrollTo({ top: heightToTop }) 会把对等元素滚动到在展示屏中恰好完全展示整个元素的位置
+		    // 然后再滚动它需要隐藏的高度 domNeedHideHeight，组合起来就是 scrollTo({ top: heightToTop + domNeedHideHeight })
             ShowContainer.scrollTo({ top: heightToTop + domNeedHideHeight })
             break
         }
